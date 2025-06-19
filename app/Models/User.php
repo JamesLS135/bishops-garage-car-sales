@@ -42,4 +42,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get all of the work records for the user (mechanic).
+     */
+    public function workDone()
+    {
+        return $this->hasMany(WorkDone::class, 'mechanic_id');
+    }
 }
