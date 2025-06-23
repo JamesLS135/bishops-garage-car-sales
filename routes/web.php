@@ -8,26 +8,25 @@ use App\Http\Controllers\WorkDoneController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CarDocumentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CarImageController; // <-- Add this line
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 // All routes in this group require a user to be logged in.
 Route::middleware('auth')->group(function () {
@@ -38,12 +37,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // --- Admin Only Routes ---
-    Route::middleware('role:Admin')->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('users.index');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::get('/reports/profitability', [ReportController::class, 'profitability'])->name('reports.profitability');
+    Route::middleware('role:Admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('users', UserController::class)->only(['index', 'edit', 'update']);
+        Route::resource('suppliers', SupplierController::class);
+        Route::resource('customers', CustomerController::class);
+        Route::get('reports/profitability', [ReportController::class, 'profitability'])->name('reports.profitability');
+        Route::get('activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
     });
-
+    
     // --- Admin & Sales Routes ---
     Route::middleware('role:Admin,Sales')->group(function () {
         Route::resource('cars', CarController::class)->except(['show']);
@@ -52,21 +53,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/cars/{car}/purchase', [PurchaseController::class, 'store'])->name('purchases.store');
         Route::get('/cars/{car}/sale/create', [SalesController::class, 'create'])->name('sales.create');
         Route::post('/cars/{car}/sale', [SalesController::class, 'store'])->name('sales.store');
+
+        // --- NEW: Car Image Management Routes ---
+        Route::post('/cars/{car}/images', [CarImageController::class, 'store'])->name('car-images.store');
+        Route::delete('/car-images/{image}', [CarImageController::class, 'destroy'])->name('car-images.destroy');
+        Route::post('/car-images/{image}/set-primary', [CarImageController::class, 'setPrimary'])->name('car-images.set-primary');
+
     });
     
     // --- Admin, Sales & Mechanic Routes ---
     Route::middleware('role:Admin,Sales,Mechanic')->group(function() {
-        // A mechanic or salesperson might need to view car details
         Route::get('/cars/{car}/edit', [CarController::class, 'edit'])->name('cars.edit');
-
-        // Document management routes
         Route::post('/cars/{car}/documents', [CarDocumentController::class, 'store'])->name('documents.store');
         Route::get('/documents/{document}', [CarDocumentController::class, 'show'])->name('documents.show');
         Route::delete('/documents/{document}', [CarDocumentController::class, 'destroy'])->name('documents.destroy');
-        
-        // Work done routes
         Route::get('/cars/{car}/work/create', [WorkDoneController::class, 'create'])->name('work.create');
         Route::post('/cars/{car}/work', [WorkDoneController::class, 'store'])->name('work.store');
+        Route::get('/work/{workDone}', [WorkDoneController::class, 'show'])->name('work.show');
     });
 
 });

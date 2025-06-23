@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Car;
+use App\Models\Purchase;
+use App\Models\Sale; 
+use App\Models\WorkDone; 
+use App\Observers\CarObserver;
+use App\Observers\PurchaseObserver;
+use App\Observers\SaleObserver; 
+use App\Observers\WorkDoneObserver; 
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -19,6 +27,19 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
     ];
+
+    /**
+     * The model observers for your application.
+     *
+     * @var array
+     */
+    protected $observers = [
+        Car::class => [CarObserver::class],
+        Purchase::class => [PurchaseObserver::class],
+        Sale::class => [SaleObserver::class],
+        WorkDone::class => [WorkDoneObserver::class],
+    ];
+
 
     /**
      * Register any events for your application.

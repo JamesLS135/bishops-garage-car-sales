@@ -20,7 +20,7 @@ class Sale extends Model
         'car_id',
         'sale_date',
         'selling_price',
-        'customer_name',
+        'customer_id', // <-- Changed from customer_name
         'odometer_at_sale',
         'warranty_details',
         'salesperson_name',
@@ -42,5 +42,13 @@ class Sale extends Model
     public function partExchangeCar()
     {
         return $this->belongsTo(Car::class, 'part_exchange_car_id');
+    }
+
+    /**
+     * Get the customer for this sale.
+     */
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
 }

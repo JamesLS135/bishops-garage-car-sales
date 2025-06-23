@@ -4,22 +4,47 @@ namespace App\Http\Controllers;
 
 use App\Models\Car;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf; // <-- Add this for PDF generation
-use SimpleSoftwareIO\QrCode\Facades\QrCode; // <-- Add this for QR code generation
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CarController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     * This will be the main car inventory page.
+     * Display a listing of the resource, with optional status and search filtering.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all cars from the database, order by the newest first, and paginate them.
-        $cars = Car::latest()->paginate(15); 
+        // Start a query for cars, order by the most recently created
+        $query = Car::latest();
 
-        // Return the 'index' view and pass the car data to it.
-        return view('cars.index', compact('cars'));
+        // --- SEARCH LOGIC ---
+        // Check if a 'search' parameter is present in the URL
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('registration_number', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('vin', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('make', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('model', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+
+        // --- STATUS FILTERING LOGIC ---
+        // Check if a 'status' parameter is present in the URL from the dashboard link
+        if ($request->has('status') && $request->status != '') {
+            $query->where('current_status', $request->status);
+        }
+        
+        // Paginate the results to keep the list manageable
+        // Append the search and status queries to pagination links
+        $cars = $query->paginate(15)->withQueryString();
+
+        // Pass the car data and the filter/search terms to the view
+        return view('cars.index', [
+            'cars' => $cars,
+            'currentFilter' => $request->status,
+            'searchTerm' => $request->search,
+        ]);
     }
 
     /**
@@ -27,7 +52,6 @@ class CarController extends Controller
      */
     public function create()
     {
-        // Simply return the view that contains the "add new car" form.
         return view('cars.create');
     }
 
@@ -36,7 +60,6 @@ class CarController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the incoming request data based on our rules.
         $validatedData = $request->validate([
             'vin' => 'required|string|size:17|unique:cars,vin',
             'registration_number' => 'required|string|unique:cars,registration_number',
@@ -47,10 +70,8 @@ class CarController extends Controller
             'current_status' => 'required|string',
         ]);
 
-        // Create a new Car instance with the validated data.
         Car::create($validatedData);
 
-        // Redirect the user back to the main car list with a success message.
         return redirect()->route('cars.index')->with('success', 'Car added successfully.');
     }
 
@@ -65,11 +86,9 @@ class CarController extends Controller
 
     /**
      * Show the form for editing the specified car.
-     * Laravel's Route Model Binding automatically finds the car by its ID.
      */
     public function edit(Car $car)
     {
-        // Return the 'edit' view and pass the specific car's data to it.
         return view('cars.edit', compact('car'));
     }
 
@@ -78,7 +97,6 @@ class CarController extends Controller
      */
     public function update(Request $request, Car $car)
     {
-        // Validate the incoming request data. Note the rule for VIN is slightly different on update.
         $validatedData = $request->validate([
             'vin' => 'required|string|size:17|unique:cars,vin,' . $car->id,
             'registration_number' => 'required|string|unique:cars,registration_number,' . $car->id,
@@ -89,10 +107,8 @@ class CarController extends Controller
             'current_status' => 'required|string',
         ]);
 
-        // Update the car's attributes with the validated data.
         $car->update($validatedData);
 
-        // Redirect the user back to the main car list with a success message.
         return redirect()->route('cars.index')->with('success', 'Car updated successfully.');
     }
 
@@ -101,10 +117,8 @@ class CarController extends Controller
      */
     public function destroy(Car $car)
     {
-        // Delete the car record.
         $car->delete();
 
-        // Redirect the user back to the main car list with a success message.
         return redirect()->route('cars.index')->with('success', 'Car deleted successfully.');
     }
 
@@ -113,16 +127,13 @@ class CarController extends Controller
      */
     public function generateCoverSheet(Car $car)
     {
-        // Generate a QR code that links to the car's edit page.
         $qrCode = QrCode::size(150)->generate(route('cars.edit', $car->id));
 
-        // Load the view and pass the car data and the QR code to it.
         $pdf = Pdf::loadView('pdf.cover_sheet', [
             'car' => $car,
             'qrCode' => $qrCode
         ]);
 
-        // Set a filename and stream the PDF to the browser for download.
         $filename = 'CoverSheet-' . $car->registration_number . '.pdf';
         return $pdf->stream($filename);
     }

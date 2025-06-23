@@ -19,7 +19,7 @@ class Purchase extends Model
     protected $fillable = [
         'car_id',
         'purchase_date',
-        'supplier_name',
+        'supplier_id', // <-- Changed from supplier_name
         'purchase_price',
         'odometer_at_purchase',
         'purchase_invoice_reference',
@@ -42,5 +42,13 @@ class Purchase extends Model
     public function car()
     {
         return $this->belongsTo(Car::class, 'car_id');
+    }
+
+    /**
+     * Get the supplier for this purchase.
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 }

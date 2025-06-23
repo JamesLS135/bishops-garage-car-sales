@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Add Purchase Details for: ') }} {{ $car->make }} {{ $car->model }} ({{ $car->registration_number }})
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
                     
                     @if ($errors->any())
                         <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -31,10 +31,17 @@
                                 <x-text-input id="purchase_date" class="block mt-1 w-full" type="date" name="purchase_date" :value="old('purchase_date')" required />
                             </div>
 
-                            <!-- Supplier Name -->
+                            <!-- Supplier Dropdown -->
                             <div>
-                                <x-input-label for="supplier_name" :value="__('Supplier Name')" />
-                                <x-text-input id="supplier_name" class="block mt-1 w-full" type="text" name="supplier_name" :value="old('supplier_name')" required />
+                                <x-input-label for="supplier_id" :value="__('Supplier')" />
+                                <select name="supplier_id" id="supplier_id" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                                    <option value="">-- Select a Supplier --</option>
+                                    @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier->supplier_id }}" @selected(old('supplier_id') == $supplier->supplier_id)>
+                                            {{ $supplier->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <!-- Purchase Price -->
@@ -59,14 +66,14 @@
                         <!-- Imported Vehicle Toggle -->
                         <div class="mt-6 border-t pt-6">
                             <label for="is_imported_vehicle" class="inline-flex items-center">
-                                <input id="is_imported_vehicle" type="checkbox" name="is_imported_vehicle" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ old('is_imported_vehicle') ? 'checked' : '' }} onchange="toggleImportFields()">
-                                <span class="ms-2 text-sm text-gray-600">{{ __('Is this an imported vehicle?') }}</span>
+                                <input id="is_imported_vehicle" type="checkbox" name="is_imported_vehicle" class="rounded border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600" {{ old('is_imported_vehicle') ? 'checked' : '' }} onchange="toggleImportFields()">
+                                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Is this an imported vehicle?') }}</span>
                             </label>
                         </div>
                         
                         <!-- Import-Specific Fields -->
                         <div id="import-fields" class="mt-6 border-t pt-6 border-dashed hidden">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Import Costs</h3>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Import Costs</h3>
                              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <x-input-label for="vrt_paid_amount" :value="__('VRT Paid (€)')" />
@@ -96,14 +103,14 @@
                                 </div>
                                 <div class="md:col-span-2">
                                     <x-input-label for="purchase_notes" :value="__('Purchase Notes')" />
-                                    <textarea id="purchase_notes" name="purchase_notes" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="3">{{ old('purchase_notes') }}</textarea>
+                                    <textarea id="purchase_notes" name="purchase_notes" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" rows="3">{{ old('purchase_notes') }}</textarea>
                                 </div>
                             </div>
                         </div>
 
 
                         <div class="flex items-center justify-end mt-6">
-                            <a href="{{ route('cars.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Cancel</a>
+                            <a href="{{ route('cars.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline">Cancel</a>
                             <x-primary-button>
                                 {{ __('Save Purchase Details') }}
                             </x-primary-button>
