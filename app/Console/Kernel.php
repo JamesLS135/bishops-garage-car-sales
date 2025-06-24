@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Run the NCT due date check command daily at 1:00 AM server time.
+        $schedule->command('app:check-nct-due-date')->dailyAt('01:00');
     }
 
     /**

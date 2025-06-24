@@ -19,7 +19,7 @@ class Purchase extends Model
     protected $fillable = [
         'car_id',
         'purchase_date',
-        'supplier_id', // <-- Changed from supplier_name
+        'supplier_id',
         'purchase_price',
         'odometer_at_purchase',
         'purchase_invoice_reference',
@@ -34,6 +34,23 @@ class Purchase extends Model
         'transport_cost_import',
         'other_expenses_total',
         'purchase_notes',
+        'original_registration_number', // <-- ADDED
+        'registration_change_date',     // <-- ADDED
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * This will automatically convert date fields from strings to Carbon date objects.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'purchase_date' => 'datetime',
+        'vrt_payment_date' => 'datetime',
+        'nct_test_date' => 'datetime',
+        'is_imported_vehicle' => 'boolean',
+        'registration_change_date' => 'date', // <-- ADDED
     ];
 
     /**

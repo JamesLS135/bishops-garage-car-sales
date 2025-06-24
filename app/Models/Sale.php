@@ -20,12 +20,21 @@ class Sale extends Model
         'car_id',
         'sale_date',
         'selling_price',
-        'customer_id', // <-- Changed from customer_name
+        'customer_id',
         'odometer_at_sale',
         'warranty_details',
         'salesperson_name',
         'part_exchange_value',
         'part_exchange_car_id',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'sale_date' => 'datetime',
     ];
 
     /**

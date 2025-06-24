@@ -17,18 +17,22 @@ class CarController extends Controller
         // Start a query for cars, order by the most recently created
         $query = Car::latest();
 
-        // --- SEARCH LOGIC ---
-        // Check if a 'search' parameter is present in the URL
-        if ($request->has('search') && $request->search != '') {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('registration_number', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('vin', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('make', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('model', 'LIKE', "%{$searchTerm}%");
-            });
+        // --- ADVANCED FILTERING LOGIC ---
+        // Filter by Make
+        if ($request->filled('make')) {
+            $query->where('make', 'LIKE', '%' . $request->make . '%');
         }
 
+        // Filter by Model
+        if ($request->filled('model')) {
+            $query->where('model', 'LIKE', '%' . $request->model . '%');
+        }
+
+        // Filter by Year
+        if ($request->filled('year')) {
+            $query->where('year', $request->year);
+        }
+        
         // --- STATUS FILTERING LOGIC ---
         // Check if a 'status' parameter is present in the URL from the dashboard link
         if ($request->has('status') && $request->status != '') {
@@ -36,14 +40,13 @@ class CarController extends Controller
         }
         
         // Paginate the results to keep the list manageable
-        // Append the search and status queries to pagination links
+        // withQueryString() appends all current filter parameters to the pagination links
         $cars = $query->paginate(15)->withQueryString();
 
-        // Pass the car data and the filter/search terms to the view
+        // Pass the car data and all filter terms to the view
         return view('cars.index', [
             'cars' => $cars,
-            'currentFilter' => $request->status,
-            'searchTerm' => $request->search,
+            'filters' => $request->only(['make', 'model', 'year', 'status']), // Pass all active filters to the view
         ]);
     }
 

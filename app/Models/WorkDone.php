@@ -26,6 +26,15 @@ class WorkDone extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'work_date' => 'datetime',
+    ];
+
+    /**
      * Get the car that this work record belongs to.
      */
     public function car()
